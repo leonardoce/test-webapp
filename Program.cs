@@ -16,7 +16,7 @@ app.MapGet("/test", () => {
     using (var cmd = dataSource.CreateCommand("SELECT 1")) {
         cmd.ExecuteScalar();
     }
-    return "Ciao";
+    return "ok";
 });
 
 app.Run();
