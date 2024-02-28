@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webapp
+  name: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - image: ghcr.io/leonardoce/test-webapp:main
+        imagePullPolicy: Always
+        name: test-webapp
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DSN
+          value: Host=cluster-example-rw
+        - name: PGDATABASE
+          valueFrom:
+            secretKeyRef:
+              name: cluster-example-app
+              key: dbname
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: cluster-example-app
+              key: user
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cluster-example-app
+              key: password
+        resources: {}
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: webapp
+  name: webapp
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: webapp
+status:
+  loadBalancer: {}
