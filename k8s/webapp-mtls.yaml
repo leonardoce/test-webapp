@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webapp
+  name: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - image: ghcr.io/leonardoce/test-webapp:main
+        imagePullPolicy: Always
+        name: test-webapp
+        resources: {}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DSN
+          value: Host=cluster-example-rw;SSL Mode=VerifyFull
+        - name: PGDATABASE
+          valueFrom:
+            secretKeyRef:
+              name: cluster-example-app
+              key: dbname
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: cluster-example-app
+              key: user
+        - name: PGSSLCERT
+          value: /certs/tls.crt
+        - name: PGSSLKEY
+          value: /certs/tls.key
+        - name: PGSSLROOTCERT
+          value: /certs/server.crt
+        volumeMounts:
+          - name: certs
+            mountPath: /certs
+      volumes:
+      - name: certs
+        projected:
+          sources:
+          - secret:
+              name: cluster-example-ca
+              items:
+                - key: ca.crt
+                  path: server.crt
+          - secret:
+              name: cluster-example-app-mtls
+              items:
+                - key: tls.crt
+                  path: tls.crt
+                - key: tls.key
+                  path: tls.key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: webapp
+  name: webapp
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: webapp
+status:
+  loadBalancer: {}

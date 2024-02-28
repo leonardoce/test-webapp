@@ -11,7 +11,7 @@ spec:
         command:
          - "/usr/local/apache2/bin/ab"
          - "-t"
-         - "30"
+         - "120"
          - "-c"
          - "5"
          - "-n"
